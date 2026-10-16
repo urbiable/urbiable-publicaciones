@@ -1,0 +1,43 @@
+name: Publicar en Instagram
+
+on:
+  schedule:
+    - cron: "7 * * * *" # cada hora (GitHub puede retrasarlo unos minutos)
+  workflow_dispatch:
+    inputs:
+      prueba:
+        description: "Prueba en seco (no publica nada)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Publicar lo que toca
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.prueba }}" = "true" ]; then
+            python publicar.py --prueba --todas
+          else
+            python publicar.py
+          fi
+      - name: Guardar el registro de publicadas
+        if: always()
+        run: |
+          git config user.name "urbiable-bot"
+          git config user.email "hola@urbiable.com"
+          git add -A cola publicadas
+          git diff --cached --quiet || (git commit -m "Registro de publicaciones" && git push)
