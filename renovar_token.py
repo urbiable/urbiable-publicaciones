@@ -8,6 +8,7 @@ así siempre le quedan unos 60 días y, en la práctica, es permanente.
 - Si Instagram devuelve un token distinto, lo guarda en GITHUB_OUTPUT para que el
   workflow actualice el secreto IG_TOKEN (necesita el secreto GH_PAT).
 - Si la renovación falla, sale con error: GitHub avisa por email.
+- Requiere los secretos IG_TOKEN y GH_PAT (permiso Secrets: lectura y escritura en este repositorio).
 """
 import hashlib
 import json
