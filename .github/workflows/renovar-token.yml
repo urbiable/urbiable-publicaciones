@@ -6,6 +6,9 @@ on:
   schedule:
     - cron: "23 6 * * 1"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [renovar_token.py, .github/workflows/renovar-token.yml]
 
 permissions:
   contents: read
