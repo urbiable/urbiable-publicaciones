@@ -1,0 +1,37 @@
+name: Renovar el token de Instagram
+
+# Cada lunes renueva el token (dura 60 días): así nunca caduca.
+# Si falla, GitHub envía un email al propietario del repositorio.
+on:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  renovar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Renovar
+        id: renovar
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: python renovar_token.py
+      - name: Guardar el token nuevo en el secreto IG_TOKEN
+        if: steps.renovar.outputs.cambia == 'si'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          NUEVO: ${{ steps.renovar.outputs.nuevo }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "ERROR: Instagram ha devuelto un token distinto y falta el secreto GH_PAT para guardarlo. Hay que actualizar IG_TOKEN a mano."
+            exit 1
+          fi
+          printf '%s' "$NUEVO" | gh secret set IG_TOKEN --repo "$GITHUB_REPOSITORY"
+          echo "Secreto IG_TOKEN actualizado."
